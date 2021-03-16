@@ -10,3 +10,5 @@ paraphraser/checkpoints/model-171856.data-00000-of-00001
 paraphraser/checkpoints/model-171856.index
 para-nmt-50m/
 env/
+augmentation/
+checkpoints/
