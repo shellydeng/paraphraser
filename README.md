@@ -94,3 +94,28 @@ Run the ```inference.py``` script
 cd paraphraser
 python inference.py --checkpoint=checkpoints/model-171856
 ```
+
+## Run the script to generate paraphrases for sentences in the datasets
+Notice that this script expects that the following files exists:
+* paraphraser/paraphraser/augmentation/datasets/indomain_train/nat_questions-questions
+* paraphraser/paraphraser/augmentation/datasets/indomain_train/newsqa-questions
+* paraphraser/paraphraser/augmentation/datasets/indomain_train/squad-questions
+* paraphraser/paraphraser/augmentation/datasets/indomain_val/nat_questions-questions
+* paraphraser/paraphraser/augmentation/datasets/indomain_val/newsqa-questions
+* paraphraser/paraphraser/augmentation/datasets/indomain_val/squad-questions
+* paraphraser/paraphraser/augmentation/datasets/oodomain_train/duorc-questions
+* paraphraser/paraphraser/augmentation/datasets/oodomain_train/race-questions
+* paraphraser/paraphraser/augmentation/datasets/oodomain_train/relation_extraction-questions
+* paraphraser/paraphraser/augmentation/datasets/oodomain_val/duorc-questions
+* paraphraser/paraphraser/augmentation/datasets/oodomain_val/race-questions
+* paraphraser/paraphraser/augmentation/datasets/oodomain_val/relation_extraction-questions
+
+To get these files, please refer to the `extractQuestions.py` script and the README.md file from this [robustqa repository](https://github.com/shellydeng/robustqa) on how to generate these files. Each of these files contains a question on each line. 
+
+Then to generate paraphrases for the questions, within the ```paraphraser/paraphraser``` directory, run the following command: 
+```
+python inference.py --checkpoint=checkpoints/model-171856 --useFiles=True
+```
+Add the ```--sampleTemp``` flag to set a sampling temperature value of between 0.0 to 1.0, different from the default value of 0.75.
+Add the ```--numPP``` flag to indicate the number of paraphrases to generate per sentence. The default is 10.
+The paraphrases will be saved to the file named using the input_path + "-pps-all" suffix (i.e. paraphraser/paraphraser/augmentation/datasets/indomain_train/nat_questions-questionspps-all)

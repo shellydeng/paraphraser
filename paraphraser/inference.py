@@ -5,7 +5,16 @@ from six.moves import input
 from lstm_model import lstm_model
 import numpy as np
 from pprint import pprint as pp
+import os
 
+prefix = 'augmentation/datasets/'
+
+domains = {
+  'indomain': ['nat_questions', 'newsqa', 'squad'],
+  'oodomain': ['duorc', 'race', 'relation_extraction']
+}
+
+classifications = ['train', 'val']
 
 class Paraphraser(object):
     '''Heart of the paraphraser model.  This class loads the checkpoint
@@ -123,12 +132,52 @@ class Paraphraser(object):
             translated_predictions.append(' '.join(translated))
         return translated_predictions
 
+def getParaphrases(paraphraser, input_path, temp, numPP):
+    output_path = input_path + '-pps-all'
+    if not os.path.exists(os.path.dirname(output_path)):
+        try:
+            os.makedirs(os.path.dirname(output_path))
+        except:
+            print ("Failed making directory")
+
+    output_file = open(output_path, 'w')
+    input_file = open(input_path, 'r')
+
+    print("Paraphrasing questions in the '{}' file.".format(input_path))
+    dictionary = {}
+    for line in input_file.readlines():
+        paraphrases = paraphraser.sample_paraphrase(line, sampling_temp=temp, how_many=numPP)
+        output_file.write(line)
+        for pp in paraphrases:
+            pp_word_list = pp.split()
+            no_break_word_list = [item for item in pp_word_list if item != '\n']
+            output_file.write(" ".join(no_break_word_list) + "\n")
+    input_file.close()
+    output_file.close()
+          
+
+def getParaphrasesForAllDatasets(paraphraser, temp, numPP): 
+    print("Starting to get paraphrases.")
+    for inOrOut in domains:
+        for dataset in domains[inOrOut]:
+            for classification in classifications:
+                input_path = prefix + inOrOut + '_' + classification + '/' + dataset + '-questions'
+                getParaphrases(paraphraser, input_path, temp, numPP)
+    print("Finished.")
+
+
 def main():
     import argparse
     parser = argparse.ArgumentParser()
     parser.add_argument('--checkpoint', type=str, help='Checkpoint path')
+    parser.add_argument('--useFiles', type=bool, help='Should use the default files and save the output to the file?', default=False)
+    parser.add_argument('--sampleTemp', type=float, help='Sampling Temperature', default=0.75)
+    parser.add_argument('--numPP', type=bool, help='Number of paraphrases to generate', default=10)
     args = parser.parse_args()
     paraphraser = Paraphraser(args.checkpoint)
+
+    if (args.useFiles):
+        return getParaphrasesForAllDatasets(paraphraser, args.sampleTemp, args.numPP)
 
     while 1:
         source_sentence = input("Source: ")
